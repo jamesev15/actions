@@ -1,0 +1,192 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: API Health Check and Authorization
+  license:
+    name: MIT
+servers:
+  - url: https://gpt-connector-api.dev.appslatam.com/
+paths:
+  /action/api/1: # bq metadata
+    post:
+      parameters:
+        - name: gpt_id
+          in: query
+          description: GPT ID
+          required: true
+          schema:
+            type: string
+      tags:
+        - "Bigquery"
+      description: |
+        Endpoint to obtatin metadatas and examples of availables tables in BigQuery. 
+        The metadatas and examples can provide context for a SQL query generation.
+      operationId: ObtainMetadata
+      responses:
+        "200":
+          description: "Successful Response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BigqueryGetResult"
+  /action/api/2: # bq query
+    post:
+      parameters:
+        - name: gpt_id
+          in: query
+          description: GPT ID
+          required: true
+          schema:
+            type: string
+      tags:
+        - "Bigquery"
+      summary: "Query"
+      description: |
+        Endpoint to execute a BigQuery query.
+        It requires a SQL Query, the tables must be include the PROJECT_ID, DATASET_ID and TABLE_NAME.
+        An examples could be "SELECT field_a, field_b from PROJECT_ID.DATASET_ID.TABLE_NAME"
+      operationId: ExecuteQuery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BigqueryQuery"
+      responses:
+        "200":
+          description: "Successful Response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BigqueryResult"
+        "422":
+          description: "Validation Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+components:
+  schemas:
+    BigqueryQuery:
+      type: "object"
+      required:
+        - "query"
+      title: "BigqueryQuery"
+      properties:
+        query:
+          type: "string"
+          title: "Query"
+          description: "The SQL query string to be executed."
+          examples:
+            - "SELECT field_a, field_b FROM PROJECT_ID.DATASET_ID.TABLE_NAME"
+    BigqueryResult:
+      type: "object"
+      required:
+        - "user_email"
+        - "page_number"
+        - "query_id"
+        - "next_page_token"
+        - "total_rows"
+        - "rows"
+      title: "BigqueryResult"
+      properties:
+        user_email:
+          type: "string"
+          title: "User Email"
+          description: "The email address of the authenticated user."
+          example: "juan@latam.com"
+        page_number:
+          type: "integer"
+          title: "Page Number"
+          description: "The page number of the results."
+          example: 1
+        query_id:
+          type: "string"
+          title: "Query Id"
+          description: "The ID of the query."
+          example: "my-query-id"
+        next_page_token:
+          anyOf:
+            - type: "string"
+            - type: "null"
+          title: "Next Page Token"
+          description: "The page token to fetch the next page of results."
+          example: "next-page-token"
+        total_rows:
+          type: "integer"
+          title: "Total Rows"
+          description: "The total number of rows in the result."
+          example: 100
+        rows:
+          type: "array"
+          title: "Rows"
+          description: "The result of the query as a list of dictionaries."
+          items:
+            type: "object"
+    BigqueryGetResult:
+      type: "object"
+      required:
+        - "metadatas"
+        - "examples"
+      title: "BigqueryGetResult"
+      properties:
+        metadatas:
+          type: "string"
+          title: "Metadatas"
+          description: "List of metadatas of availables tables "
+          example: "Metadata for project-plt-plygrd.ADOPTERS_STATISTICS.METRICS\ntable_catalog: project-plt-plygrd\ntable_schema: ADOPTERS_STATISTICS\ntable_name: METRICS\nddl: CREATE TABLE `project-plt-plygrd.ADOPTERS_STATISTICS.METRICS`\n(\n  EMAIL STRING,\n  ACTION_TYPE STRING,\n  DETAILS STRING,\n  URL STRING,\n  HOST STRING,\n  PATH STRING,\n  CREATED_AT TIMESTAMP\n);"
+        examples:
+          type: "string"
+          title: "Examples"
+          description: "List of examples of availables tables"
+          example: "Metadata for project-plt-plygrd.ADOPTERS_STATISTICS.METRICSEjemplo #1:\n\nEMAIL: john.smith@latam.com\nACTION_TYPE: TEMPLATE CREATION\nDETAILS: project-template-llm-simple-classifier\nURL: None\nHOST: project-catalog-dot-project-adopters-plygrd-7936.ue.r.appspot.com\nPATH: /api/scaffolder/v2/tasks\nCREATED_AT: 2024-02-08 02:33:33+00:00\n"
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        version:
+          type: string
+          example: 1.0.0
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    HTTPValidationError:
+      type: object
+      title: HTTPValidationError
+      properties:
+        detail:
+          type: array
+          title: Detail
+          items:
+            $ref: "#/components/schemas/ValidationError"
+    ValidationError:
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+      properties:
+        loc:
+          type: array
+          title: Location
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
