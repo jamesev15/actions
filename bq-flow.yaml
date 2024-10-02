@@ -5,7 +5,7 @@ info:
   license:
     name: MIT
 servers:
-  - url: https://gpt-connector-api.dev.appslatam.com/
+  - url: https://gpt-connector-api.dev.appslatam.com
 paths:
   /action/api/1: # bq metadata
     post:
