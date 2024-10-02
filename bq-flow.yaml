@@ -29,6 +29,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BigqueryGetResult"
+        "500":
+          description: Error generado en la action de BigQuery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /action/api/2: # bq query
     post:
       parameters:
@@ -59,14 +65,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BigqueryResult"
-        "422":
-          description: "Validation Error"
+        "500":
+          description: Error generado en la action de BigQuery.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HTTPValidationError"
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
     BigqueryQuery:
       type: "object"
       required:
@@ -132,54 +143,4 @@ components:
         metadatas:
           type: "string"
           title: "Metadatas"
-          description: "List of metadatas of availables tables or views"       
-    HealthResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: OK
-        version:
-          type: string
-          example: 1.0.0
-    Error:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
-    HTTPValidationError:
-      type: object
-      title: HTTPValidationError
-      properties:
-        detail:
-          type: array
-          title: Detail
-          items:
-            $ref: "#/components/schemas/ValidationError"
-    ValidationError:
-      type: object
-      required:
-        - loc
-        - msg
-        - type
-      title: ValidationError
-      properties:
-        loc:
-          type: array
-          title: Location
-          items:
-            anyOf:
-              - type: string
-              - type: integer
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
+          description: "List of metadatas of availables tables or views"
