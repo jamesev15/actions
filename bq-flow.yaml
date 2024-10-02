@@ -78,6 +78,7 @@ components:
       properties:
         detail:
           type: string
+          description: "Details of the error, the details must be returned to the user without changes."
     BigqueryQuery:
       type: "object"
       required:
